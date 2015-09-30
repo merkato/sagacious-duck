@@ -1,0 +1,180 @@
+# ----------------------------------------------
+#   Zimowa Szkola Kartograficzna - Istebna 2015
+#   MapProxy configuration.
+# ----------------------------------------------
+
+services:
+  demo:
+  wms:
+    srs: ['EPSG:2180','EPSG:4326','EPSG:3857']
+    bbox_srs: ['EPSG:2180','EPSG:4326','EPSG:3857']
+    md:
+      title: Serwer proxy usług publicznych GIS Support Sp. z o.o.
+      contact:
+        person: Tomasz Nycz
+        position: specjalista ds. kluczowych klientów
+        organization: GIS Support Sp. z o.o.
+        phone: +49 517 163 986
+      abstract: 'Serwer cache WMS usług publicznych dla celów szkoleniowych GIS Support Sp. z o.o.'
+      access_constraints: This service is intended for corporate training use only.
+      fees: 'None'
+
+layers:
+  - name: topo
+    title: Geoportal PL - Mapa topograficzna
+    sources: [topo_cache]
+  - name: orto
+    title: Geoportal PL - Ortofotomapa
+    sources: [orto_cache]
+  - name: bdot
+    title: Geoportal PL - BDOT Budynki
+    sources: [bdot_cache]
+  - name: tbd
+    title: Geoportal PL - TBD Budynki
+    sources: [tbd_cache]
+  - name: Linie
+    sources:
+    - linie_cache
+    title: Linie kolejowe PLK
+  - name: Stacje
+    sources:
+    - stacje_cache
+    title: Stacje kolejowe PLK
+
+
+caches:
+
+  orto_cache:
+    grids: [puwg]
+    sources: [wms_orto]
+    cache:
+      type: sqlite
+      directory: /var/mapproxy/orto/
+  tbd_cache:
+    grids: [puwg]
+    sources: [wms_tbd]
+    cache:
+      type: sqlite
+      directory: /var/mapproxy/tbd/
+  bdot_cache:
+    grids: [puwg]
+    sources: [wms_bdot]
+    cache:
+      type: sqlite
+      directory: /var/mapproxy/bdot/
+  topo_cache:
+    sources: [wms_topo]
+    grids: [puwg]
+    cache:
+      type: sqlite
+      directory: /var/mapproxy/topo/
+  linie_cache:
+      grids: [puwg]
+      sources: [linie_plk]
+      cache:
+        type: sqlite
+        directory: /var/mapproxy/plk/linie/
+  stacje_cache:
+      grids: [puwg]
+      sources: [stacje_plk]
+      cache:
+        type: sqlite
+        directory: /var/mapproxy/plk/stacje/
+
+
+sources:
+  wms_orto:
+    coverage:
+      bbox: [14.1263619382259, 49.0570234631174, 24.5691852611694, 54.8355616744346]
+      srs: EPSG:4326
+    type: wms
+    supported_srs: ['EPSG:4326', 'EPSG:2180']
+    req:
+      url: http://mapy.geoportal.gov.pl/wss/service/img/guest/ORTO/MapServer/WMSServer
+      layers: Raster
+  wms_topo:
+    coverage:
+      bbox: [14.1263619382259, 49.0570234631174, 24.5691852611694, 54.8355616744346]
+      srs: EPSG:4326
+    type: wms
+    req:
+      url: http://mapy.geoportal.gov.pl/wss/service/img/guest/TOPO/MapServer/WMSServer
+      layers: Raster
+    supported_srs: ['EPSG:4326','EPSG:2180']
+  wms_tbd:
+    coverage:
+      bbox: [14.1263619382259, 49.0570234631174, 24.5691852611694, 54.8355616744346]
+      srs: EPSG:4326
+    req:
+      layers: 'Bud_A,BudWys_A'
+      transparent: true
+      url: http://mapy.geoportal.gov.pl/wss/service/pub/guest/kompozycjaG2_TBD_WMS/MapServer/WMSServer?
+    supported_srs: ['EPSG:4326', 'EPSG:2178', 'EPSG:2179', 'EPSG:2176', 'EPSG:2177',
+      'EPSG:2180']
+    type: wms
+  wms_bdot:
+    coverage:
+      bbox: [14.1263619382259, 49.0570234631174, 24.5691852611694, 54.8355616744346]
+      srs: EPSG:4326
+    req:
+      layers: '0,1,2,3,4,5,6,7,8,9,10,11,13'
+      transparent: true
+      url: http://mapy.geoportal.gov.pl:80/wss/service/pub/guest/G2_BDOT_BUD_2010/MapServer/WMSServer?
+    supported_srs: ['EPSG:4326', 'EPSG:2178', 'EPSG:2179', 'EPSG:2176', 'EPSG:2177',
+      'EPSG:2180']
+    type: wms
+    wms_opts:
+      featureinfo: true
+      legendurl: http://mapy.geoportal.gov.pl:80/wss/service/pub/guest/G2_BDOT_BUD_2010/MapServer/WMSServer?request=GetLegendGraphic%26version=1.1.1%26format=image/png%26layer=0
+  linie_plk:
+    coverage:
+      bbox:
+      - 13.897775850007664
+      - 48.96047359195033
+      - 24.62129508936267
+      - 54.837612045189395
+      bbox_srs: EPSG:4326
+    req:
+      layers: SILK:WMS_SILK_linie_kolejowe
+      transparent: true      
+      url: http://mapa.plk-sa.pl:8080/geoserver/SILK/wms?SERVICE=WMS&
+    supported_formats:
+    - png
+    - jpeg
+    supported_srs:
+    - EPSG:4326
+    - EPSG:2180
+    type: wms
+  stacje_plk:
+    coverage:
+      bbox:
+      - 13.897775850007664
+      - 48.96047359195033
+      - 24.62129508936267
+      - 54.837612045189395
+      bbox_srs: EPSG:4326
+    req:
+      layers: SILK:WMS_SILK_stacje_przystanki
+      transparent: true
+      url: http://mapa.plk-sa.pl:8080/geoserver/SILK/wms?SERVICE=WMS&
+    supported_formats:
+    - png
+    - jpeg
+    supported_srs:
+    - EPSG:2180
+    - EPSG:4326
+    type: wms
+grids:
+    webmercator:
+        base: GLOBAL_WEBMERCATOR
+    puwg:
+       srs: 'EPSG:2180'
+       bbox: [144907, 129171, 877004, 910679]
+       # let MapProxy transform the bbox to the grid SRS
+       bbox_srs: 'EPSG:2180'
+       origin: 'nw'
+       # resolution of level 0
+       min_res: 3052.7655842634194
+       num_levels: 18
+
+globals:
